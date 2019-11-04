@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\App;
 
 trait Translation
 {
-    public static function bootTranslatable()
+    public static function bootTranslation()
     {
         static::updating(function($model) {
             if (isset($model->translations) && is_array($model->translations)) {
