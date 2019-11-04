@@ -15,6 +15,8 @@ trait Translation
                 foreach ($model->attributes as $key => $val) {
                     if (array_key_exists($key, $model->translations)) {
                         unset($model->attributes[$key]);
+                        // Keep the model clean (not dirty)
+                        unset($model->original[$key]);
                         $code = $model->translations[$key];
                         if (is_string($code))
                             $model->setTranslation($key, $code, $val);
