@@ -12,11 +12,10 @@ trait Translation
     {
         static::updating(function($model) {
             if (isset($model->translations) && is_array($model->translations)) {
+                $translations = [];
                 foreach ($model->attributes as $key => $val) {
                     if (array_key_exists($key, $model->translations)) {
-                        unset($model->attributes[$key]);
-                        // Keep the model clean (not dirty)
-                        unset($model->original[$key]);
+                        array_push($translations, $key);
                         $code = $model->translations[$key];
                         if (is_string($code))
                             $model->setTranslation($key, $code, $val);
@@ -26,6 +25,8 @@ trait Translation
                             $model->setTranslation($key, $code['code'], $val, $code['locale']);
                     }
                 }
+                foreach ($translations as $t)
+                    unset($model->attributes[$t]);
             }
         });
     }
