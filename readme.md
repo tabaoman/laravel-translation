@@ -55,6 +55,8 @@ use Tabaoman\Translation\Translation;
 class Store extends Model
 {
     use Translation;
+    protected $casts = ['id' => 'string']; // Sometimes you need this cast
+    
     protected $translations = [
         'name' => 'STORE_NAME' // attribute => text code
     ];
