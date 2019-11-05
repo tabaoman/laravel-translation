@@ -16,13 +16,7 @@ trait Translation
                 foreach ($model->attributes as $key => $val) {
                     if (array_key_exists($key, $model->translations)) {
                         array_push($translations, $key);
-                        $code = $model->translations[$key];
-                        if (is_string($code))
-                            $model->setTranslation($key, $code, $val);
-                        if (is_array($code) &&
-                            array_key_exists('code', $code) &&
-                            array_key_exists('locale', $code))
-                            $model->setTranslation($key, $code['code'], $val, $code['locale']);
+                        $model->setTranslation($key, $val);
                     }
                 }
                 foreach ($translations as $t)
@@ -37,10 +31,7 @@ trait Translation
 
         if (isset($this->translations) && is_array($this->translations)) {
             foreach ($this->translations as $key => $code) {
-                if (is_string($code))
-                    $this->attributes[$key] = $this->getTranslation($this->getKey(), $code, App::getLocale());
-                if (is_array($code) && isset($code['code']) && isset($code['locale']))
-                    $this->attributes[$key] = $this->getTranslation($this->getKey(), $code['code'], $code['locale']);
+                $this->attributes[$key] = $this->getTranslation($key, App::getLocale());
             }
         }
 
@@ -51,8 +42,16 @@ trait Translation
         return $this;
     }
 
-    public function getTranslation(string $key, string $code, string $locale = null)
+    public function getTranslation($key, string $locale = null)
     {
+        if (!isset($this->translations) ||
+            !is_array($this->translations) ||
+            !array_key_exists($key, $this->translations)) return $this->getAttribute($key);
+        $code = $this->translations[$key];
+        if (is_array($code) && array_key_exists('code', $code) && array_key_exists('locale', $code)) {
+            $locale = $code['locale'];
+            $code = $code['code'];
+        }
         if (is_null($locale)) $locale = App::getLocale();
         if (class_exists(config('translation.model')))
             $lang = config('translation.model')::where('lang_code', $locale)
@@ -67,11 +66,18 @@ trait Translation
         return $lang->content;
     }
 
-    public function setTranslation(string $key, string $code, ?string $value, string $locale = null)
+    public function setTranslation($key, $value, string $locale = null)
     {
+        if (is_null($this->getKey()) ||
+            !isset($this->translations) ||
+            !is_array($this->translations) ||
+            !array_key_exists($key, $this->translations)) return $this->setAttribute($key, $value);
+        $code = $this->translations[$key];
+        if (is_array($code) && array_key_exists('code', $code) && array_key_exists('locale', $code)) {
+            $locale = $code['locale'];
+            $code = $code['code'];
+        }
         if (is_null($locale)) $locale = config('app.locale');
-        if (!isset($this->translations) || !is_array($this->translations)) return;
-        if (is_null($this->getKey())) return;
         if (is_null($value)) $value = '';
         if (class_exists(config('translation.model')))
             config('translation.model')::updateOrCreate(
@@ -81,7 +87,17 @@ trait Translation
             DB::table(config('translation.table'))->updateOrInsert(
                 ['entity_id' => $this->getKey(), 'lang_code' => $locale, 'text_code' => $code],
                 ['content' => $value]);
-        $this->attributes[$key] = $value;
+        $this->setAttribute($key, $value);
+    }
+
+    public function __get($key)
+    {
+        return $this->getTranslation($key);
+    }
+
+    public function __set($key, $value)
+    {
+        return $this->setTranslation($key, $value);
     }
 
 }
