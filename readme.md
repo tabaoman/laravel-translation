@@ -59,6 +59,7 @@ class Store extends Model
     
     protected $translations = [
         'name' => 'STORE_NAME' // attribute => text code
+        // 'name' => ['code' => 'STORE_NAME'] // Or associate like this
     ];
     
     // ...
