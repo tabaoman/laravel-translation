@@ -59,7 +59,8 @@ class Store extends Model
     
     protected $translations = [
         'name' => 'STORE_NAME' // attribute => text code
-        // 'name' => ['code' => 'STORE_NAME'] // Or associate like this
+        // 'name' => ['code' => 'STORE_NAME'], // Or associate like this
+        // 'name' => ['code' => 'STORE_NAME', 'my_key' => 'my_value'] // You can add custom key-value pair for other uses.
     ];
     
     // ...
