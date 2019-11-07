@@ -25,6 +25,24 @@ trait Translation
         });
     }
 
+    /***
+     * Only for model use
+     * @return mixed
+     * @throws \Exception
+     */
+    public function trans()
+    {
+        if (class_exists(config('translation.model')))
+            return $this->hasMany(config('translation.model'), 'entity_id', $this->getKeyName());
+    }
+
+    /***
+     * Override the method from HasAttributes
+     * To fill the attribute(s) with translations
+     * @param array $attributes
+     * @param bool $sync
+     * @return $this
+     */
     public function setRawAttributes(array $attributes, $sync = false)
     {
         $this->attributes = $attributes;
@@ -42,6 +60,12 @@ trait Translation
         return $this;
     }
 
+    /***
+     * Get the value for specified key and locale (optional)
+     * @param $key
+     * @param string|null $locale
+     * @return mixed|string
+     */
     public function getTranslation($key, string $locale = null)
     {
         if (!isset($this->translations) ||
@@ -70,6 +94,13 @@ trait Translation
         return $lang->content;
     }
 
+    /***
+     * Set the value to the specified key with locale (optioanl)
+     * @param $key
+     * @param $value
+     * @param string|null $locale
+     * @return mixed
+     */
     public function setTranslation($key, $value, string $locale = null)
     {
         if (is_null($this->getKey()) ||
