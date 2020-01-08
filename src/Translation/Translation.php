@@ -37,6 +37,38 @@ trait Translation
     }
 
     /***
+     * Get all language contents grouped by language codes
+     * @return array
+     * @throws \Exception
+     */
+    public function langs ()
+    {
+        if (class_exists(config('translation.model')))
+            $langs = config('translation.model')::
+                select(['lang_code', 'text_code', 'content'])
+                ->where('entity_id', $this->getKey())
+                ->get()->toArray();
+        else
+            $langs = DB::table(config('translation.table'))
+                ->select(['lang_code', 'text_code', 'content'])
+                ->where('entity_id', $this->getKey())
+                ->where('text_code', $code)
+                ->get()->toArray();
+        $maps = [];
+        foreach ($this->translations as $key => $tran) {
+            if (is_array($tran) && isset($tran['code'])) $maps[$tran['code']] = $key;
+            else $maps[$tran] = $key;
+        }
+        $texts = [];
+        for ($i = 0; $i < count($langs); $i++) {
+            $lang = $langs[$i]['lang_code'];
+            if (!isset($texts[$lang])) $texts[$lang] = [];
+            $texts[$lang][$maps[$langs[$i]['text_code']]] = $langs[$i]['content'];
+        }
+        return $texts;
+    }
+
+    /***
      * Override the method from HasAttributes
      * To fill the attribute(s) with translations
      * @param array $attributes
