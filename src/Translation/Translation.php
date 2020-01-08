@@ -54,16 +54,14 @@ trait Translation
                 ->where('entity_id', $this->getKey())
                 ->where('text_code', $code)
                 ->get()->toArray();
-        $maps = [];
-        foreach ($this->translations as $key => $tran) {
-            if (is_array($tran) && isset($tran['code'])) $maps[$tran['code']] = $key;
-            else $maps[$tran] = $key;
-        }
+
         $texts = [];
         for ($i = 0; $i < count($langs); $i++) {
             $lang = $langs[$i]['lang_code'];
+            $code = $langs[$i]['text_code'];
             if (!isset($texts[$lang])) $texts[$lang] = [];
-            $texts[$lang][$maps[$langs[$i]['text_code']]] = $langs[$i]['content'];
+            foreach ($this->getTranKey($code, $lang) as $prop)
+                $texts[$lang][$prop] = $langs[$i]['content'];
         }
         return $texts;
     }
@@ -169,6 +167,27 @@ trait Translation
     public function __set($key, $value)
     {
         return $this->setTranslation($key, $value);
+    }
+
+    protected function getTranKey($code, string $locale)
+    {
+        $props = [];
+        $keys = array_keys($this->translations);
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            $tran = $this->translations[$key];
+            if (is_string($tran) && $code == $tran) {
+                array_push($props, $key);
+            } elseif (is_array($tran)) {
+                if (isset($tran['code']) && $tran['code'] == $code) {
+                    if (!isset($tran['locale']))
+                        array_push($props, $key);
+                    elseif ($tran['locale'] == $locale)
+                        array_push($props, $key);
+                }
+            }
+        }
+        return $props;
     }
 
 }
